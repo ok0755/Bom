@@ -16,8 +16,9 @@ class Bom(object):
         self.workbook=xlwt.Workbook(encoding='gb18030')
         self.worksheet=self.workbook.add_sheet('sheet')
         self.get_file(self.rootdir)
+        self.lock=threading.Lock()
 
-    #返回excel对象
+    #返回excel文件对象
     def get_file(self,rootdir):
         files=os.listdir(rootdir)
         for fil in files:
@@ -27,6 +28,7 @@ class Bom(object):
 
     #返回excel文件名和sheet表对象
     def openxls(self,fil):
+        self.lock.acquire()
         ar=[]
         xls=xlrd.open_workbook(self.rootdir+fil)
         xls_sheet_names=xls.sheet_names()
@@ -34,8 +36,9 @@ class Bom(object):
             if not 'ECN' in sheets:
                 ar.append(xls.sheet_by_name(sheets))
         self.sheet(fil,ar)
+        self.lock.release()
 
-    #单元格匹配
+    #单元格正则匹配
     def sheet(self,xls_book,xls_sheets):
         dic=set()
         for sht in xls_sheets:
@@ -68,6 +71,12 @@ if __name__=='__main__':
     enter=raw_input('Enter model:>>>\n')
     f=Bom(enter)
     t=f.th
+    threads=[]
     for x in t:
-        f.openxls(x)
+        thr=threading.Thread(target=f.openxls,args=(x,))
+        threads.append(thr)
+    for child in threads:
+        child.start()
+    for child in threads:
+        child.join()
     f.workbook.save('{}.xls'.format(enter))
