@@ -37,7 +37,6 @@ class Bom(object):
 
     #单元格匹配
     def sheet(self,xls_book,xls_sheets):
-
         dic=set()
         for sht in xls_sheets:
             if 'ECN' not in sht.name:
@@ -50,14 +49,14 @@ class Bom(object):
         ar=[]
         for d in dic:
             try:
-                key=re.findall(self.re_,d)
+                key=re.findall(self.re_,d.replace(' ',''))
                 if len(key)>0:
                     ar+=key
             except:
                 pass
 
-        #a=ar.sort()
-        st='\n'.join(ar)
+        ar.sort()
+        st=' \n'.join(ar)
         self.wr(xls_book,st)
 
     def wr(self,xls_book,st):
